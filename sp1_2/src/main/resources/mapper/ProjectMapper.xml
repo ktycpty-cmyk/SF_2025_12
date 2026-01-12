@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.zerock.mapper.ProjectMapper">
+  
+  <insert id="insert">
+  
+  	<selectKey order="AFTER" keyProperty="bno" resultType="long">
+  		select LAST_INSERT_ID()
+  	</selectKey>
+  
+	  insert into project_board(title,content, writer, category)
+	  values (#{title}, #{content}, #{writer}, #{category})
+  </insert>
+  
+  <select id="selectOne" resultType="org.zerock.dto.ProjectDTO">
+  	select * from project_board where bno = #{bno}
+  </select>
+  
+  <update id="remove">
+  	update project_board set delflag = true 
+  	where bno = #{bno}
+  </update>
+  
+  <update id="update">
+  	update project_board set 
+  		title=#{title}, content=#{content}, writer=#{writer},
+  		updatedate = now(), delflag = #{delFlag}
+  	where bno = #{bno}
+  </update>
+  
+  <select id="list" resultType="ProjectDTO">
+  	select bno, title, writer, content, regDate 
+  	from project_board
+  	where delflag = false
+  	order by bno desc 
+  </select>
+
+  <select id="list2" resultType="ProjectDTO">
+  	select bno, title, writer, content, regDate 
+  	from project_board
+  	where delflag = false
+  	order by bno desc
+  	limit #{count} offset #{skip} 
+  </select>
+  
+  <select id="listCount" resultType="int">
+  	select count(bno) from project_board
+  	where bno>0 and delflag = false
+  </select>
+  
+  
+    <sql id="search">
+        <if test="keyword != null and keyword != ''">
+            <trim prefix="and (" suffix=")" prefixOverrides="or">
+                <choose>
+                    <when test="types != null and types.length > 0">
+                        <foreach collection="types" item="type">
+                            <if test='type.equals("T")'> or title like concat('%', #{keyword}, '%') </if>
+                            <if test='type.equals("C")'> or content like concat('%', #{keyword}, '%') </if>
+                            <if test='type.equals("W")'> or writer like concat('%', #{keyword}, '%') </if>
+                        </foreach>
+                    </when>
+                    <otherwise>
+                        or title like concat('%', #{keyword}, '%')
+                        or content like concat('%', #{keyword}, '%')
+                        or writer like concat('%', #{keyword}, '%')
+                    </otherwise>
+                </choose>
+            </trim>
+        </if>
+    </sql>
+
+<select id="listSearch" resultType="ProjectDTO">
+  	select  b.bno, b.title, b.content, b.writer, b.regdate, 
+		    b.updatedate, count(rno) as replyCnt 
+  	from project_board b
+  	left join project_reply r
+  	on b.bno = r.bno  	
+  	
+  	where b.delflag = false and b.category = #{category}
+
+  	<include refid="search"></include>
+  	
+  	group by b.bno 
+  	order by bno desc
+  	limit #{skip}, #{count}
+  </select>
+  
+  <select id="listCountSearch" resultType="int">
+	select count(bno) 
+  	from project_board
+  	where delflag = false and category = #{category}
+  	
+  	<include refid="search"></include>
+  	
+  </select>
+  
+
+  
+  
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

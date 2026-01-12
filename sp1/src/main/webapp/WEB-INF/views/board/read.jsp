@@ -264,7 +264,7 @@ function printReplies(data){
 
   let liStr = "";
 
-  for(replyDTO of replyDTOList){
+  for(let replyDTO of replyDTOList){
     liStr +=  `<li class="list-group-item" data-rno="\${replyDTO.rno}">
                   <div class="d-flex justify-content-between">
                     <div>
